@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h3>Cài đặt lại Ca/Kíp</h3>
+    <a href="/settings/shift">Quay lại</a>
+    <form id="updateShiftForm">
+      <label for="name">Tên Ca/Kíp</label>
+      <input type="text" name="name" id="name" required />
+      <label for="started_at">Thời gian bắt đầu</label>
+      <input type="time" name="started_at" id="started_at" />
+      <label for="finished_at">Thời gian kết thúc</label>
+      <input type="time" name="finished_at" id="finished_at" />
+      <button type="submit">Cập nhật</button>
+    </form>
+  </body>
+  <script>
+    const shiftId = window.location.pathname.split("/").pop();
+
+    async function loadShift() {
+      try {
+        const res = await fetch(`/settings/shift/detail/${shiftId}`);
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById("name").value = data.data.name;
+          document.getElementById("started_at").value =
+            data.data.started_at || "";
+          document.getElementById("finished_at").value =
+            data.data.finished_at || "";
+        } else {
+          alert(data.message || "Không tìm thấy thông tin");
+        }
+      } catch (err) {
+        console.error("Lỗi truy vấn dữ liệu", err);
+      }
+    }
+    document
+      .getElementById("updateShiftForm")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("name").value;
+        const started_at = document.getElementById("started_at").value;
+        const finished_at = document.getElementById("finished_at").value;
+
+        try {
+          const res = await fetch(`/settings/shift/update/${shiftId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name, started_at, finished_at }),
+          });
+          const data = await res.json();
+          alert(data.message);
+          if (data.success) {
+            window.location.href = "/settings/shift";
+          }
+        } catch (err) {
+          console.error("Lỗi cập nhật", err);
+        }
+      });
+
+    window.onload = loadShift;
+  </script>
+</html>

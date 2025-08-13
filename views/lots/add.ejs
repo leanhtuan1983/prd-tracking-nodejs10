@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thêm lot</title>
+  </head>
+  <body>
+    <h2>Thêm lot</h2>
+    <a href="/management/lots">Quay lại</a>
+    <form id="addLotForm">
+      <label for="lot_code">Lode code</label><br />
+      <input
+        type="text"
+        name="lot_code"
+        id="lot_code"
+        pattern="^\d{1,10}$"
+        maxlength="10"
+        minlength="10"
+        required
+      /><br /><br />
+      <label for="quantity">Quantity</label><br />
+      <input type="text" name="quantity" id="quantity" /><br /><br />
+      <label for="product_id">Product</label><br />
+      <select name="product_id" id="product_id">
+        <option>===Chọn sản phẩm===</option></select
+      ><br /><br />
+      <button type="submit">Lưu</button>
+    </form>
+    <p id="message"></p>
+    <script>
+      async function loadProducts() {
+        try {
+          const res = await fetch("/management/products/list");
+          const data = await res.json();
+          const select = document.getElementById("product_id");
+
+          data.data.forEach((prd) => {
+            const option = document.createElement("option");
+            option.value = prd.id;
+            option.text = prd.name;
+            select.appendChild(option);
+          });
+        } catch (err) {
+          {
+            console.error("Lỗi fetch Products", err);
+          }
+        }
+      }
+      window.onload = loadProducts;
+      const form = document.getElementById("addLotForm");
+      const message = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const lot_code = document.getElementById("lot_code").value.trim();
+        const product_id = document.getElementById("product_id").value.trim();
+        const quantity = document.getElementById("quantity").value.trim();
+
+        // Kiểm tra lot_code đúng 10 chữ số
+        if (!/^\d{10}$/.test(lot_code)) {
+          showMessage("❌ Lot code phải đúng 10 chữ số.", "red");
+          return;
+        }
+
+        // Kiểm tra product_id không rỗng
+        if (!product_id || isNaN(product_id)) {
+          showMessage("❌ Vui lòng chọn sản phẩm hợp lệ.", "red");
+          return;
+        }
+
+        // Kiểm tra quantity là số nguyên dương
+        if (!/^[1-9]\d*$/.test(quantity)) {
+          showMessage("❌ Số lượng phải là số nguyên dương.", "red");
+          return;
+        }
+
+        try {
+          const res = await fetch("/management/lots/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ lot_code, product_id, quantity }),
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            showMessage("✅ Thêm lot_code thành công!", "green");
+            form.reset();
+          } else {
+            showMessage(
+              "❌ " + (data.message || "Lỗi khi thêm lot_code"),
+              "red"
+            );
+          }
+        } catch (err) {
+          console.error("Lỗi gửi dữ liệu:", err);
+          showMessage("❌ Đã xảy ra lỗi kết nối.", "red");
+        }
+      });
+
+      function showMessage(text, color) {
+        message.textContent = text;
+        message.style.color = color;
+      }
+    </script>
+  </body>
+</html>

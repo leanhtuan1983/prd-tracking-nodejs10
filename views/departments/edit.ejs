@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sửa phòng ban</title>
+  </head>
+  <body>
+    <h2>Sửa phòng ban</h2>
+    <a href="/admin/departments">Quay lại</a>
+    <form id="editDepartmentForm">
+      <label for="name">Tên phòng ban/Bộ phận</label><br />
+      <input type="text" name="name" id="name" required /><br /><br />
+      <label for="mission">Nhiệm vụ</label><br />
+      <select name="mission" id="mission"></select
+      ><br /><br />
+      <button type="submit">Cập nhật</button>
+    </form>
+    <script>
+      const departmentId = window.location.pathname.split("/").pop();
+
+      async function loadDepartments() {
+        try {
+          const res = await fetch(`/admin/departments/detail/${departmentId}`);
+          const data = await res.json();
+
+          if (data.success) {
+            document.getElementById("name").value = data.data.name;
+            loadMission(data.data.mission);
+          } else {
+            alert(data.message || "Không tìm thấy dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu:", err);
+        }
+      }
+
+      function loadMission(currentMission) {
+        const missions = ["management", "operating"];
+        const labels = {
+          management: "Quản lý dữ liệu",
+          operating: "Vận hành sản xuất",
+        };
+
+        const select = document.getElementById("mission");
+        select.innerHTML = "";
+
+        missions.forEach((mission) => {
+          const option = document.createElement("option");
+          option.value = mission;
+          option.textContent = labels[mission];
+          if (mission === currentMission) option.selected = true;
+          select.appendChild(option);
+        });
+      }
+
+      document
+        .getElementById("editDepartmentForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("name").value;
+          const mission = document.getElementById("mission").value;
+
+          try {
+            const res = await fetch(
+              `/admin/departments/update/${departmentId}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name, mission }),
+              }
+            );
+
+            const data = await res.json();
+            alert(data.message);
+
+            if (data.success) {
+              window.location.href = "/admin/departments";
+            }
+          } catch (err) {
+            console.error("Lỗi cập nhật", err);
+          }
+        });
+      window.onload = loadDepartments;
+    </script>
+  </body>
+</html>

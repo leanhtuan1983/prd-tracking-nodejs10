@@ -1,0 +1,276 @@
+<%- include('partials/layout', { title: 'Dashboard' }) %>
+
+<!-- Start Status area -->
+<div class="notika-status-area">
+  <div class="container">
+    <div class="row">
+      <!-- Nội dung dashboard 1 -->
+      <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div
+          class="wb-traffic-inner notika-shadow sm-res-mg-t-30 tb-res-mg-t-30"
+        >
+          <div class="website-traffic-ctn">
+            <h2><span class="counter" id="total"></span></h2>
+            <p>Tổng sản lượng</p>
+          </div>
+          <div class="sparkline-bar-stats1">
+            <i class="fa fa-database fa-3x text-success" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div
+          class="wb-traffic-inner notika-shadow sm-res-mg-t-30 tb-res-mg-t-30"
+        >
+          <div class="website-traffic-ctn">
+            <h2><span class="counter">90,000</span></h2>
+            <p>Năng suất</p>
+          </div>
+          <div class="sparkline-bar-stats2">
+            <i class="fa fa-bolt fa-3x text-danger" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div
+          class="wb-traffic-inner notika-shadow sm-res-mg-t-30 tb-res-mg-t-30 dk-res-mg-t-30"
+        >
+          <div class="website-traffic-ctn">
+            <h2>$<span class="counter">40,000</span></h2>
+            <p>SL dự kiến</p>
+          </div>
+          <div class="sparkline-bar-stats3">
+            <i
+              class="fa fa-line-chart fa-3x text-warning"
+              aria-hidden="true"
+            ></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div
+          class="wb-traffic-inner notika-shadow sm-res-mg-t-30 tb-res-mg-t-30 dk-res-mg-t-30"
+        >
+          <div class="website-traffic-ctn">
+            <h2><span class="counter">1,000</span></h2>
+            <p>Tiến độ (%)</p>
+          </div>
+          <div class="sparkline-bar-stats4">
+            <i class="fa fa-percent fa-3x text-primary" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Status area-->
+<!-- Start Sale Statistic area-->
+<div class="sale-statistic-area">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-9 col-md-8 col-sm-7 col-xs-12">
+        <div class="sale-statistic-inner notika-shadow mg-tb-30">
+          <div class="curved-inner-pro">
+            <div class="curved-ctn">
+              <h2>Biểu đồ sản lượng</h2>
+              <p>Thời gian cập nhật: 14h35 06/08/2025</p>
+            </div>
+          </div>
+          <div id="stacked-bar-chart" style="height: 400px"></div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-4 col-sm-5 col-xs-12">
+        <div class="statistic-right-area notika-shadow mg-tb-30 sm-res-mg-t-0">
+          <div class="past-day-statis">
+            <h2>For The Past 30 Days</h2>
+            <p>
+              Fusce eget dolor id justo luctus the commodo vel pharetra nisi.
+              Donec velit of libero.
+            </p>
+          </div>
+          <div class="dash-widget-visits"></div>
+          <div class="past-statistic-an">
+            <div class="past-statistic-ctn">
+              <h3><span class="counter">3,20,000</span></h3>
+              <p>Page Views</p>
+            </div>
+            <div class="past-statistic-graph">
+              <div class="stats-bar"></div>
+            </div>
+          </div>
+          <div class="past-statistic-an">
+            <div class="past-statistic-ctn">
+              <h3><span class="counter">1,03,000</span></h3>
+              <p>Total Clicks</p>
+            </div>
+            <div class="past-statistic-graph">
+              <div class="stats-line"></div>
+            </div>
+          </div>
+          <div class="past-statistic-an">
+            <div class="past-statistic-ctn">
+              <h3><span class="counter">24,00,000</span></h3>
+              <p>Site Visitors</p>
+            </div>
+            <div class="past-statistic-graph">
+              <div class="stats-bar-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Sale Statistic area-->
+<!-- Start Email Statistic area-->
+<div class="notika-email-post-area">
+  <div class="container">
+    <div class="row"></div>
+  </div>
+</div>
+<!-- End Email Statistic area-->
+<!-- Start Realtime sts area-->
+<div class="realtime-statistic-area">
+  <div class="container">
+    <div class="row">
+      <!-- Nội dung dashboard 5 -->
+    </div>
+  </div>
+</div>
+<!-- End Realtime sts area-->
+<!-- Start Footer area-->
+<%- include('partials/footer') %>
+<!-- End Footer area-->
+<h2>Xin chào, <%= user.username %></h2>
+<p>Bạn đang đăng nhập với vai trò: <%= user.role %></p>
+<ul>
+  <% if (user && user.role === 'admin') { %>
+  <!-- Hiển thị toàn bộ cho admin -->
+  <li><a href="/admin/departments">Quản lý phòng ban</a></li>
+  <li><a href="/admin/users">Quản lý người dùng</a></li>
+  <li><a href="/permissions">Phân quyền</a></li>
+  <li><a href="/management/categories">Quản lý Danh mục</a></li>
+  <li><a href="/management/products">Quản lý Sản phẩm</a></li>
+  <li><a href="/management/lots">Quản lý Lot</a></li>
+  <li><a href="/management/procedures">Quản lý Quy trình</a></li>
+  <li><a href="/management/processes">Quản lý Processes</a></li>
+  <li><a href="/settings/shift">Quản lý Ca/Kíp</a></li>
+  <li><a href="/tracking">Danh sách Tracking</a></li>
+  <li><a href="/tracking/initial">Khởi tạo tracking</a></li>
+  <li><a href="/logs">Logs</a></li>
+  <% } else if (user && user.role === 'product-manager') { %>
+  <li><a href="/management/categories">Quản lý Danh mục</a></li>
+  <li><a href="/management/products">Quản lý Sản phẩm</a></li>
+  <li><a href="/management/lots">Quản lý Lot</a></li>
+  <% } else if (user && user.role === 'engineer') { %>
+  <li><a href="/management/procedures">Quản lý Quy trình</a></li>
+  <li><a href="/management/processes">Quản lý Processes</a></li>
+  <% } else if (user && (user.role === 'operator'||user.role ===
+  'dept-manager')) { %>
+  <li><a href="/tracking">Danh sách Tracking</a></li>
+  <li><a href="/tracking/initial">Khởi tạo Tracking</a></li>
+  <li><a href="/logs">Logs</a></li>
+  <% } %>
+  <!-- Ai cũng có thể thấy logout -->
+  <li><a href="/auth/logout">Thoát</a></li>
+</ul>
+
+<script>
+  // Gọi API khi trang đã tải xong
+  document.addEventListener("DOMContentLoaded", function () {
+    fetch("/dashboard/total")
+      .then((response) => {
+        if (!response.ok) throw new Error("Fetch failed");
+        return response.json();
+      })
+      .then((data) => {
+        // Gán kết quả vào thẻ span
+        const totalSpan = document.getElementById("total");
+        totalSpan.textContent = data.total_quantity ?? 0;
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải tổng sản lượng:", err);
+        document.getElementById("total").textContent = "N/A";
+      });
+  });
+</script>
+
+<script>
+  $(function () {
+    const data1 = {
+      label: "Motivation",
+      data: [
+        [0, 4],
+        [1, 8],
+        [2, 5],
+        [3, 13],
+        [4, 17],
+      ],
+      bars: { show: true, barWidth: 0.6, order: 1, fill: 1 },
+    };
+
+    const data2 = {
+      label: "Level",
+      data: [
+        [0, 2],
+        [1, 5],
+        [2, 3],
+        [3, 6],
+        [4, 8],
+      ],
+      bars: { show: true, barWidth: 0.6, order: 1, fill: 1 },
+    };
+
+    const data3 = {
+      label: "Energy",
+      data: [
+        [0, 1],
+        [1, 3],
+        [2, 2],
+        [3, 4],
+        [4, 6],
+      ],
+      bars: { show: true, barWidth: 0.6, order: 1, fill: 1 },
+    };
+
+    const data4 = {
+      label: "Another",
+      data: [
+        [0, 0.5],
+        [1, 1.5],
+        [2, 1],
+        [3, 2],
+        [4, 3],
+      ],
+      bars: { show: true, barWidth: 0.6, order: 1, fill: 1 },
+    };
+
+    $.plot("#stacked-bar-chart", [data1, data2, data3, data4], {
+      series: {
+        stack: true,
+        bars: { show: true, barWidth: 0.6, lineWidth: 0, fill: 1 },
+      },
+      legend: {
+        show: true,
+        position: "ne",
+      },
+      grid: {
+        hoverable: true,
+        clickable: true,
+      },
+      xaxis: {
+        ticks: [
+          [0, "08:00"],
+          [1, "10:00"],
+          [2, "12:00"],
+          [3, "14:00"],
+          [4, "16:00"],
+        ],
+      },
+      yaxis: {
+        min: 0,
+      },
+    });
+  });
+</script>
+</body>

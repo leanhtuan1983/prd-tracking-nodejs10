@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thêm process</title>
+  </head>
+  <body>
+    <h2>Thêm process</h2>
+    <a href="/management/processes">Quay lại</a>
+    <form id="addProcessForm">
+      <label for="name">Tên process</label><br />
+      <input type="text" name="name" id="name" required /><br /><br />
+      <label for="procedure_id">Procedure</label><br />
+      <select name="procedure_id" id="procedure_id">
+        <option>===Chọn quy trình===</option></select
+      ><br /><br />
+      <label for="department_id">Department</label><br />
+      <select name="department_id" id="department_id">
+        <option>===Chọn bộ phận===</option></select
+      ><br /><br />
+      <button type="submit">Lưu</button>
+    </form>
+    <p id="message"></p>
+    <script>
+      // Lấy danh sách procedures và departments
+      async function loadProceduresAndDepartments() {
+        try {
+          const resProcedure = await fetch("/management/procedures/list");
+          const resDepartment = await fetch("/admin/department-list");
+          const dataProcedure = await resProcedure.json();
+          const dataDepartment = await resDepartment.json();
+          const selectProcedure = document.getElementById("procedure_id");
+          const selectDepartment = document.getElementById("department_id");
+          if (dataProcedure.success && dataDepartment.success) {
+            dataProcedure.data.forEach((prd) => {
+              const option = document.createElement("option");
+              option.value = prd.id;
+              option.text = prd.name;
+              selectProcedure.appendChild(option);
+            });
+            dataDepartment.data.forEach((dep) => {
+              const option = document.createElement("option");
+              option.value = dep.id;
+              option.text = dep.name;
+              selectDepartment.appendChild(option);
+            });
+          } else {
+            if (!dataProcedure.success) {
+              alert("Lỗi tải danh sách quy trình.");
+            }
+            if (!dataDepartment.success) {
+              alert("Lỗi tải danh sách phòng ban.");
+            }
+          }
+        } catch (err) {
+          console.error("Lỗi fetch Procedures và Departments", err);
+        }
+      }
+      window.onload = loadProceduresAndDepartments;
+
+      // Thêm mới process
+      const form = document.getElementById("addProcessForm");
+      const message = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("name").value;
+        const procedure_id = document.getElementById("procedure_id").value;
+        const department_id = document.getElementById("department_id").value;
+
+        try {
+          const res = await fetch("/management/processes/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              procedure_id,
+              department_id,
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            message.innerText = "Thêm thành công";
+            form.reset();
+          } else {
+            message.innerText = "Lỗi" + data.message;
+          }
+        } catch (err) {
+          console.error("Lỗi gửi dữ liệu:", err);
+          message.innerText = "Đã xảy ra lỗi";
+        }
+      });
+    </script>
+  </body>
+</html>

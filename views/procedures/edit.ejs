@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sửa Quy trình</title>
+  </head>
+  <body>
+    <h2>Sửa Quy trình</h2>
+    <a href="/management/procedures">Quay lại</a>
+    <form id="editProcedureForm">
+      <label for="name">Tên Quy trình</label><br />
+      <input type="text" name="name" id="name" required /><br /><br />
+      <label for="category_id">Category</label><br />
+      <select name="category_id" id="category_id"></select
+      ><br /><br />
+      <button type="submit">Cập nhật</button>
+    </form>
+    <script>
+      // Lấy Id procedure
+      const procedureId = window.location.pathname.split("/").pop();
+
+      // Lấy thông tin procedure
+      async function loadProcedureInfo() {
+        try {
+          const resProcedure = await fetch(
+            `/management/procedures/detail/${procedureId}`
+          );
+          const dataProcedure = await resProcedure.json();
+
+          if (dataProcedure.success) {
+            const procedure = dataProcedure.data;
+            document.getElementById("name").value = procedure.name;
+            // Gọi hàm lấy thông tin categories
+            await loadCategories(procedure.category_id);
+          } else {
+            alert(dataProcedure.message || "Không tìm thấy dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu:", err);
+        }
+      }
+
+      // Lấy thông tin categories
+      async function loadCategories(selectedId) {
+        try {
+          const res = await fetch("/management/category-list");
+          const data = await res.json();
+          const select = document.getElementById("category_id");
+
+          data.data.forEach((cat) => {
+            const option = document.createElement("option");
+            option.value = cat.id;
+            option.text = cat.name;
+
+            if (cat.id == selectedId) {
+              option.selected = true;
+            }
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch Category:", err);
+        }
+      }
+
+      window.onload = loadProcedureInfo;
+
+      // Upload data
+      document
+        .getElementById("editProcedureForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = {
+            name: document.getElementById("name").value,
+            category_id: document.getElementById("category_id").value,
+          };
+          try {
+            const res = await fetch(
+              `/management/procedures/update/${procedureId}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+              }
+            );
+            const result = await res.json();
+            alert(result.message);
+            if (result.success) window.location.href = "/management/procedures";
+          } catch (err) {
+            console.error("Lỗi cập nhật:", err);
+          }
+        });
+    </script>
+  </body>
+</html>

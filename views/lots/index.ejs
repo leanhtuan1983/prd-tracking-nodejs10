@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh mục lot_code</title>
+  </head>
+  <body>
+    <h2>Danh mục lot_code</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/management/lots/add">Thêm lot</a>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Lot code</th>
+          <th>Product name</th>
+          <th>Quantity</th>
+          <th>Rework</th>
+          <th>Added by</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="lotTableBody"></tbody>
+    </table>
+    <script>
+      async function loadLotList() {
+        try {
+          const res = await fetch("/management/lots/list");
+          const data = await res.json();
+          if (data.success) {
+            const tbody = document.getElementById("lotTableBody");
+            tbody.innerHTML = "";
+            data.data.forEach((lot, index) => {
+              console.log("Kết quả fetch:", data);
+              const row = `<tr>
+                <td>${index + 1}</td>
+                <td>${lot.lot_code}</td>
+                <td>${lot.product_name}</td>
+                <td>${lot.quantity}</td>
+                <td>${lot.allow_rework == 1 ? "Accept" : "Deny"}</td>
+                <td>${lot.username}</td>
+
+                <td>
+                  <a href = "/management/lots/edit/${lot.id}">Sửa</a>
+                  <a href = "#" onclick = "deleteLot(${lot.id})">Xóa</a>
+              </td>
+              </tr>`;
+              tbody.innerHTML += row;
+            });
+          } else {
+            alert(data.message || "Không tải được dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu", err);
+        }
+      }
+
+      async function deleteLot(id) {
+        if (!confirm("Bạn chắc chắn muốn xóa lot_code này?")) return;
+        try {
+          const res = await fetch(`/management/lots/delete/${id}`);
+          const data = await res.json();
+          alert(data.message);
+          loadLotList();
+        } catch {
+          console.error("Lỗi xóa dữ liệu:", err);
+        }
+      }
+
+      window.onload = loadLotList;
+    </script>
+  </body>
+</html>

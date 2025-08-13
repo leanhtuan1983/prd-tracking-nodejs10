@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh sách phân quyền người dùng</title>
+  </head>
+  <body>
+    <h2>Danh sách phân quyền người dùng</h2>
+    <a href="/dashboard">Dashboard</a>
+    <table border="1" cellpadding="10">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Phòng ban chính</th>
+          <th>Phòng ban được phân quyền</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="permissionTableBody"></tbody>
+      <script>
+        async function loadPermissions() {
+          try {
+            const res = await fetch("/permissions/list");
+            const data = await res.json();
+            if (data.success) {
+              const tbody = document.getElementById("permissionTableBody");
+              tbody.innerHTML = "";
+              data.data.forEach((per, index) => {
+                const row = `
+          <tr>
+          <td>${index + 1}</td>
+          <td>${per.username}</td>
+          <td>${per.role}</td>
+          <td>${per.original_department}</td>
+          <td>${
+            per.permitted_departments ? per.permitted_departments : "Chưa có"
+          }</td>
+          <td>
+           <a href = "/permissions/givePermissionForm/${
+             per.user_id
+           }">Phân quyền</a>  
+          </td>
+          </tr>`;
+                tbody.innerHTML += row;
+              });
+            } else {
+              alert(data.message || "Không tải được dữ liệu");
+            }
+          } catch (err) {
+            console.error("Lỗi fetch dữ liệu:", err);
+          }
+        }
+
+        window.onload = loadPermissions;
+      </script>
+    </table>
+  </body>
+</html>

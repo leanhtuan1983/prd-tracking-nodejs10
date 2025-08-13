@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sửa Lot_code</title>
+  </head>
+  <body>
+    <h2>Sửa Lode code</h2>
+    <a href="/management/lots">Quay lại</a>
+    <form id="editLotForm">
+      <label for="lot_code">Lot code</label><br />
+      <input type="text" name="lot_code" id="lot_code" required /><br /><br />
+      <label for="quantity">Quantity</label><br />
+      <input type="text" name="quantity" id="quantity" /><br /><br />
+      <label for="product_id">Product</label>
+      <select name="product_id" id="product_id"></select
+      ><br /><br />
+      <label for="allow_rework">Rework</label>
+      <select name="allow_rework" id="allow_rework"></select>
+      <button type="submit">Cập nhật</button>
+    </form>
+    <script>
+      // Lấy ID lod_code
+      const lotId = window.location.pathname.split("/").pop();
+
+      // Lấy thông tin lot_code
+      async function loadLotInfo() {
+        try {
+          const resLot = await fetch(`/management/lots/detail/${lotId}`);
+          const dataLot = await resLot.json();
+
+          if (dataLot.success) {
+            const lot = dataLot.data;
+            document.getElementById("lot_code").value = lot.lot_code;
+            document.getElementById("quantity").value = lot.quantity;
+
+            await loadProducts(lot.product_id);
+            await loadAllowRework(lot.allow_rework);
+          } else {
+            alert(dataLot.message || "Không tìm thấy lot_code");
+          }
+        } catch (err) {
+          console.log("Lỗi fetch dữ liệu:", err);
+        }
+      }
+
+      // Load danh sách Products
+      async function loadProducts(selectedId) {
+        try {
+          const res = await fetch(`/management/products/list`);
+          const data = await res.json();
+          const select = document.getElementById("product_id");
+
+          data.data.forEach((prd) => {
+            const option = document.createElement("option");
+            option.value = prd.id;
+            option.text = prd.name;
+
+            if (prd.id == selectedId) {
+              option.selected = true;
+            }
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch product:", err);
+        }
+      }
+
+      // Cập nhật thông tin
+      document
+        .getElementById("editLotForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = {
+            lot_code: document.getElementById("lot_code").value,
+            product_id: document.getElementById("product_id").value,
+            quantity: document.getElementById("quantity").value,
+            allow_rework: document.getElementById("allow_rework").value,
+          };
+          try {
+            const res = await fetch(`/management/lots/update/${lotId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(formData),
+            });
+            const result = await res.json();
+            alert(result.message);
+            if (result.success) window.location.href = "/management/lots";
+          } catch (err) {
+            console.error("Lỗi cập nhật", err);
+          }
+        });
+
+      // Hàm lấy thông tin rework
+      function loadAllowRework(currentAllow) {
+        const options = [
+          { value: 0, text: "Deny" },
+          { value: 1, text: "Accept" },
+        ];
+
+        const select = document.getElementById("allow_rework");
+        select.innerHTML = "";
+
+        options.forEach((opt) => {
+          const option = document.createElement("option");
+          option.value = opt.value;
+          option.textContent = opt.text;
+          if (opt.value == currentAllow) option.selected = true;
+          select.appendChild(option);
+        });
+      }
+
+      window.onload = loadLotInfo;
+    </script>
+  </body>
+</html>

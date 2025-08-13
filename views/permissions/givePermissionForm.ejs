@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phân quyền người dùng</title>
+  </head>
+  <body>
+    <h2>Phân quyền người dùng</h2>
+    <a href="/permissions">Danh sách phân quyền người dùng</a>
+    <form id="givePermissionForm">
+      <label for="username">Tên người dùng: </label>
+      <input type="text" name="username" id="username" disabled /><br /><br />
+      <label for="role">Role</label>
+      <select name="role" id="role" disabled></select
+      ><br /><br />
+      <label for="department_id">Thuộc Phòng ban</label>
+      <select name="department_id" id="department_id" disabled></select
+      ><br /><br />
+      <label for="permitted_department_id">Bộ phận vận hành</label>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>
+              <input type="checkbox" id="checkAllBox" />
+            </th>
+            <th>Department</th>
+          </tr>
+        </thead>
+        <tbody id="permitted_department_id"></tbody>
+      </table>
+      <button type="submit">Xác nhận</button>
+    </form>
+    <script>
+      // Lấy id của user
+      const userId = window.location.pathname.split("/").pop();
+      // Lấy thông tin user
+      async function loadUserInfo() {
+        try {
+          const resUser = await fetch(`/admin/users/detail/${userId}`);
+          const dataUser = await resUser.json();
+
+          if (dataUser.success) {
+            const user = dataUser.data;
+            document.getElementById("username").value = user.username;
+            // gọi hàm lấy role
+            loadRoles(user.role);
+            // gọi hàm lấy department
+            await loadDepartments(user.department_id);
+            await loadPermittedDepartments();
+          } else {
+            alert(dataUser.message || "Không tìm thấy dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu:", err);
+        }
+      }
+      // Hàm lấy role
+      function loadRoles(currentRole) {
+        const roles = [
+          "admin",
+          "dept-manager",
+          "engineer",
+          "product-manager",
+          "operator",
+        ];
+        const select = document.getElementById("role");
+        select.innerHTML = "";
+
+        roles.forEach((role) => {
+          const option = document.createElement("option");
+          option.value = role;
+          option.textContent = role;
+          if (role === currentRole) option.selected = true;
+          select.appendChild(option);
+        });
+      }
+      // Hàm lấy department
+      async function loadDepartments(selectedId) {
+        try {
+          const res = await fetch("/admin/department-list");
+          const data = await res.json();
+          const select = document.getElementById("department_id");
+
+          data.data.forEach((dept) => {
+            const option = document.createElement("option");
+            option.value = dept.id;
+            option.text = dept.name;
+
+            if (dept.id == selectedId) {
+              option.selected = true;
+            }
+
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch phòng ban:", err);
+        }
+      }
+      // Tải danh sách department để phân quyền
+      async function loadPermittedDepartments() {
+        try {
+          // 1. Fetch toàn bộ phòng ban
+          const resDept = await fetch("/admin/department-list");
+          const deptData = await resDept.json();
+
+          // 2. Fetch danh sách department đã được phân quyền cho user
+          const resPerm = await fetch(
+            `/permissions/getUserPermission/${userId}`
+          );
+          const permData = await resPerm.json();
+          const permittedIds = permData.success ? permData.data : [];
+
+          // 3. Hiển thị bảng checkbox
+          if (deptData.success) {
+            const tbody = document.getElementById("permitted_department_id");
+            tbody.innerHTML = "";
+
+            deptData.data.forEach((dep) => {
+              const isChecked = permittedIds.includes(dep.id);
+              const row = `
+          <tr>
+            <td>
+              <input type="checkbox" value="${
+                dep.id
+              }" name="permitted_department_id" ${
+                isChecked ? "checked" : ""
+              } onchange="syncCheckAllBox()">
+            </td>
+            <td>${dep.name}</td>
+          </tr>
+        `;
+              tbody.innerHTML += row;
+            });
+          } else {
+            alert(deptData.message || "Không tải được danh sách phòng ban");
+          }
+        } catch (err) {
+          console.error("Lỗi load permitted departments:", err);
+        }
+      }
+      window.onload = loadUserInfo;
+
+      document
+        .getElementById("givePermissionForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const userId = window.location.pathname.split("/").pop();
+
+          // Lấy danh sách checkbox được check
+          const checkedBoxes = document.querySelectorAll(
+            'input[name="permitted_department_id"]:checked'
+          );
+          const permittedIds = Array.from(checkedBoxes).map((cb) => cb.value);
+
+          if (permittedIds.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 phòng ban");
+            return;
+          }
+
+          try {
+            const res = await fetch(`/permissions/postPermission/${userId}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                permitted_department_id: permittedIds,
+              }),
+            });
+
+            const data = await res.text(); // Hoặc `await res.json()` nếu server trả JSON
+
+            if (res.ok) {
+              alert("Cập nhật phân quyền thành công!");
+              // Bạn có thể reload lại hoặc chuyển hướng:
+              // window.location.href = "/permissions";
+            } else {
+              alert(data || "Cập nhật thất bại");
+            }
+          } catch (err) {
+            console.error("Lỗi khi gửi dữ liệu:", err);
+            alert("Lỗi hệ thống khi gửi dữ liệu");
+          }
+        });
+      // Chức năng Check All
+      document
+        .getElementById("checkAllBox")
+        .addEventListener("change", function () {
+          const isChecked = this.checked;
+          const checkboxes = document.querySelectorAll(
+            'input[name="permitted_department_id"]'
+          );
+          checkboxes.forEach((checkbox) => {
+            checkbox.checked = isChecked;
+          });
+        });
+      function syncCheckAllBox() {
+        const checkAllBox = document.getElementById("checkAllBox");
+        const checkboxes = document.querySelectorAll(
+          'input[name="permitted_department_id"]'
+        );
+        const allChecked = Array.from(checkboxes).every((cb) => cb.checked);
+        checkAllBox.checked = allChecked;
+      }
+    </script>
+  </body>
+</html>

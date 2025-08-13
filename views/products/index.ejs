@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh mục sản phẩm</title>
+  </head>
+  <body>
+    <h2>Danh mục sản phẩm</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/management/products/add">Thêm sản phẩm</a>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Added by</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="productTableBody"></tbody>
+    </table>
+    <script>
+      async function loadProductList() {
+        try {
+          const res = await fetch("/management/products/list");
+          const data = await res.json();
+          if (data.success) {
+            const tbody = document.getElementById("productTableBody");
+            tbody.innerHTML = "";
+            data.data.forEach((prd) => {
+              const row = `<tr>
+                <td>${prd.id}</td>
+                <td>${prd.name}</td>
+                <td>${prd.category_name}</td>
+                <td>${prd.username}</td>
+                <td>
+                  <a href = "/management/products/edit/${prd.id}">Sửa</a>
+                  <a href = "#" onclick = "deleteProduct(${prd.id})">Xóa</a>
+                </td>
+              </tr>`;
+              tbody.innerHTML += row;
+            });
+          } else {
+            alert(data.message || "Không tải được dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu", err);
+        }
+      }
+      async function deleteProduct(id) {
+        if (!confirm("Bạn chắc chắn muốn xóa sản phẩm này?")) return;
+        try {
+          const res = await fetch(`/management/products/delete/${id}`);
+          const data = await res.json();
+          alert(data.message);
+          loadProductList();
+        } catch (err) {
+          console.error("Lỗi xóa dữ liệu:", err);
+        }
+      }
+      window.onload = loadProductList;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= procedure.name %></title>
+    <style>
+      .container {
+        width: 1400px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <p>Thông tin chi tiết của Quy trình: <span id="procedureName"></span></p>
+      <a href="/management/procedures">Danh sách Quy trình</a>
+      <div class="table-index">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Process</th>
+              <th>Department</th>
+              <th>Added by</th>
+              <th>Added time</th>
+            </tr>
+          </thead>
+          <tbody id="procedureDetailTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      async function loadProcedureDetail() {
+        const procedureId = window.location.pathname.split("/").pop();
+        try {
+          const res = await fetch(
+            `/management/procedures/fetchProcedureDetail/${procedureId}`
+          );
+          const data = await res.json();
+          if (data.success) {
+            const procedure_name =
+              data.data[0]?.procedure_name || "Không rõ tên Quy trình";
+            const deptName = (document.getElementById(
+              "procedureName"
+            ).innerHTML = procedure_name);
+
+            const tbody = document.getElementById("procedureDetailTableBody");
+
+            data.data.forEach((prd, index) => {
+              const row = `<tr>
+                <td>${index + 1}</td>
+                <td>${prd.process_name}</td>
+                <td>${prd.department_name}</td>
+                <td>${prd.username}</td>
+                <td>0</td>
+             
+                </tr>`;
+              tbody.innerHTML += row;
+            });
+          } else {
+            alert(data.message || "Không thể tải danh sách");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch:", err);
+        }
+      }
+      window.onload = loadProcedureDetail;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Department</title>
+  </head>
+  <body>
+    <h2>Thêm phòng ban</h2>
+    <a href="/admin/departments">Danh sách phòng ban</a>
+    <form id="addDepartmentForm">
+      <label for="name">Tên phòng ban</label>
+      <input
+        type="text"
+        name="name"
+        id="name"
+        placeholder="Tên phòng ban"
+        required
+      />
+      <label for="mission">Nhiệm vụ</label>
+      <select name="mission" id="mission">
+        <option value="">===Chọn nhiệm vụ===</option>
+        <option value="management">Quản lý</option>
+        <option value="operating">Vận hành</option>
+      </select>
+      <button type="submit">Lưu</button>
+    </form>
+    <p id="message"></p>
+
+    <script>
+      const form = document.getElementById("addDepartmentForm");
+      const message = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("name").value;
+        const mission = document.getElementById("mission").value;
+        try {
+          const res = await fetch(`/admin/departments/create`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name, mission }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            message.innerText = "Thêm thành công";
+            form.reset();
+          } else {
+            message.innerText = "Lỗi: " + data.message;
+          }
+        } catch (err) {
+          console.error("Lỗi gửi dữ liệu", err);
+          message.innerText = "Đã xảy ra lỗi";
+        }
+      });
+    </script>
+  </body>
+</html>

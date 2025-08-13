@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sửa người dùng</title>
+  </head>
+  <body>
+    <h2>Sửa người dùng</h2>
+    <a href="/admin/users">Danh sách người dùng</a>
+    <form id="editUserForm">
+      <label for="username">Tên người dùng</label><br />
+      <input type="text" name="username" id="username" required /><br /><br />
+      <label for="password">Mật khẩu</label><br />
+      <input
+        type="password"
+        name="password"
+        id="password"
+        required
+      /><br /><br />
+      <label for="role">Role</label><br />
+      <select name="role" id="role"></select
+      ><br /><br />
+      <label for="department_id">Phòng ban</label>
+      <select name="department_id" id="department_id"></select
+      ><br /><br />
+      <button type="submit">Cập nhật</button>
+    </form>
+    <script>
+      // Lấy id của user
+      const userId = window.location.pathname.split("/").pop();
+      // Lấy thông tin user
+      async function loadUserInfo() {
+        try {
+          const resUser = await fetch(`/admin/users/detail/${userId}`);
+          const dataUser = await resUser.json();
+
+          if (dataUser.success) {
+            const user = dataUser.data;
+            document.getElementById("username").value = user.username;
+            document.getElementById("password").value = user.password;
+            // gọi hàm lấy role
+            loadRoles(user.role);
+            // gọi hàm lấy department
+            await loadDepartments(user.department_id);
+          } else {
+            alert(dataUser.message || "Không tìm thấy dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu:", err);
+        }
+      }
+      // Hàm lấy role
+      function loadRoles(currentRole) {
+        const roles = [
+          "admin",
+          "dept-manager",
+          "engineer",
+          "product-manager",
+          "operator",
+        ];
+        const select = document.getElementById("role");
+        select.innerHTML = "";
+
+        roles.forEach((role) => {
+          const option = document.createElement("option");
+          option.value = role;
+          option.textContent = role;
+          if (role === currentRole) option.selected = true;
+          select.appendChild(option);
+        });
+      }
+      // Hàm lấy department
+      async function loadDepartments(selectedId) {
+        try {
+          const res = await fetch("/admin/department-list");
+          const data = await res.json();
+          const select = document.getElementById("department_id");
+
+          data.data.forEach((dept) => {
+            const option = document.createElement("option");
+            option.value = dept.id;
+            option.text = dept.name;
+
+            if (dept.id == selectedId) {
+              option.selected = true;
+            }
+
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch phòng ban:", err);
+        }
+      }
+      // Upload data
+      document
+        .getElementById("editUserForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = {
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+            role: document.getElementById("role").value,
+            department_id: document.getElementById("department_id").value,
+          };
+
+          try {
+            const res = await fetch(`/admin/users/update/${userId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(formData),
+            });
+            const result = await res.json();
+            alert(result.message);
+            if (result.success) window.location.href = "/admin/users";
+          } catch (err) {
+            console.error("Lỗi cập nhật:", err);
+          }
+        });
+      window.onload = loadUserInfo;
+    </script>
+  </body>
+</html>

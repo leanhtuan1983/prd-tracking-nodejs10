@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thêm người dùng</title>
+  </head>
+  <body>
+    <h2>Thêm người dùng</h2>
+    <a href="/admin/users">Danh sách người dùng</a>
+    <form id="addUserForm">
+      <label for="username">Username</label><br />
+      <input type="text" name="username" id="username" required /><br /><br />
+      <label for="password">Mật khẩu</label><br />
+      <input
+        type="password"
+        name="password"
+        id="password"
+        required
+      /><br /><br />
+      <label for="role">Role</label><br />
+      <select name="role" id="role">
+        <option value="admin">Admin</option>
+        <option value="dept-manager">Department Manager</option>
+        <option value="engineer">Engineer</option>
+        <option value="product-manager">Product Manager</option>
+        <option value="operator">Operator</option>
+        <option value="user">User</option></select
+      ><br /><br />
+      <label for="department_id">Phòng ban</label><br />
+      <select name="department_id" id="department_id">
+        <option>===Chọn phòng ban===</option></select
+      ><br /><br />
+      <button type="submit">Lưu</button>
+    </form>
+    <p id="message"></p>
+
+    <script>
+      async function loadDepartments() {
+        try {
+          const res = await fetch("/admin/department-list");
+          const data = await res.json();
+          const select = document.getElementById("department_id");
+
+          data.data.forEach((dept) => {
+            const option = document.createElement("option");
+            option.value = dept.id;
+            option.text = dept.name;
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch phòng ban:", err);
+        }
+      }
+      window.onload = loadDepartments;
+
+      const form = document.getElementById("addUserForm");
+      const message = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const role = document.getElementById("role").value;
+        const department_id = document.getElementById("department_id").value;
+        try {
+          const res = await fetch("/admin/users/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password, role, department_id }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            message.innerText = "Thêm user thành công!";
+            form.reset();
+          } else {
+            message.innerText = "Lỗi: " + data.message;
+          }
+        } catch (err) {
+          console.error("Lỗi gửi dữ liệu:", err);
+          message.innerText = "Đã xảy ra lỗi!";
+        }
+      });
+    </script>
+  </body>
+</html>

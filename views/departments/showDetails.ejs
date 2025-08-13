@@ -1,0 +1,63 @@
+<%- include('../partials/layout', { title: title }) %>
+<div class="container">
+  <p id="deptName"></p>
+  <a href="/dashboard">Dashboard</a>
+  <div class="table-index">
+    <table>
+      <thead>
+        <tr>
+          <th>Lot</th>
+          <th>Product</th>
+          <th>Process</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="deptDetailTableBody"></tbody>
+    </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>
+<script>
+  async function loadDepartmentDetail() {
+    const pathParts = window.location.pathname.split("/");
+    const deptId = pathParts[2];
+    try {
+      const res = await fetch(`/dashboard/${deptId}/details`);
+      const data = await res.json();
+      if (data.success) {
+        const dept_name =
+          data.data[0]?.department_name || "Không rõ tên phòng ban";
+        const deptName = (document.getElementById("deptName").innerHTML =
+          dept_name);
+
+        const tbody = document.getElementById("deptDetailTableBody");
+        let enableNext = true;
+        tbody.innerHTML = "";
+        data.data.forEach((detail) => {
+          const disabled = !enableNext || detail.status === "completed";
+          if (detail.status === "completed") enableNext = true;
+          else enableNext = false;
+          const row = `<tr>
+                <td>${detail.lot_code}</td>
+                <td>${detail.product_name}</td>
+                <td>${detail.process_name}</td>
+                <td>${detail.status}</td>
+                <td>
+                    <button onclick="updateStatus('${detail.process_name}', ${
+            detail.department_id
+          })" ${disabled ? "disabled" : ""}>Cập nhật</button>
+                    </td>
+                </tr>`;
+          tbody.innerHTML += row;
+        });
+      } else {
+        alert(data.message || "Không thể tải danh sách");
+      }
+    } catch (err) {
+      console.error("Lỗi fetch:", err);
+    }
+  }
+  window.onload = loadDepartmentDetail;
+</script>
+</body>

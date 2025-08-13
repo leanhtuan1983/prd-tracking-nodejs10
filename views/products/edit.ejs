@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sửa sản phẩm</title>
+  </head>
+  <body>
+    <h2>Sửa sản phẩm</h2>
+    <a href="/management/products">Quay lại</a>
+    <form id="editProductForm">
+      <label for="name">Tên sản phẩm</label><br />
+      <input type="text" name="name" id="name" required /><br /><br />
+      <label for="category_id">Category</label>
+      <select name="category_id" id="category_id"></select
+      ><br /><br />
+      <button type="submit">Cập nhật</button>
+    </form>
+    <script>
+      // Lấy ID sản phẩm
+      const productId = window.location.pathname.split("/").pop();
+
+      // Lấy thông tin sản phẩm
+      async function loadProductInfo() {
+        try {
+          const resProduct = await fetch(
+            `/management/products/detail/${productId}`
+          );
+          const dataProduct = await resProduct.json();
+
+          if (dataProduct.success) {
+            const product = dataProduct.data;
+            document.getElementById("name").value = product.name;
+            // Lấy thông tin categories
+            await loadCategories(product.category_id);
+          } else {
+            alert(dataProduct.message || "Không tìm thấy dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu:", err);
+        }
+      }
+      // Hàm lấy thông tin categories
+      async function loadCategories(selectedId) {
+        try {
+          const res = await fetch("/management/category-list");
+          const data = await res.json();
+          const select = document.getElementById("category_id");
+
+          data.data.forEach((cat) => {
+            const option = document.createElement("option");
+            option.value = cat.id;
+            option.text = cat.name;
+
+            if (cat.id == selectedId) {
+              option.selected = true;
+            }
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch Category:", err);
+        }
+      }
+
+      // Upload data
+      document
+        .getElementById("editProductForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = {
+            name: document.getElementById("name").value,
+            category_id: document.getElementById("category_id").value,
+          };
+          try {
+            const res = await fetch(
+              `/management/products/update/${productId}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+              }
+            );
+            const result = await res.json();
+            alert(result.message);
+            if (result.success) window.location.href = "/management/products";
+          } catch (err) {
+            console.error("Lỗi cập nhật:", err);
+          }
+        });
+      window.onload = loadProductInfo;
+    </script>
+  </body>
+</html>

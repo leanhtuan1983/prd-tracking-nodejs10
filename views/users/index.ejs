@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh sách người dùng</title>
+  </head>
+  <body>
+    <h2>Danh sách người dùng</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/admin/users/add">Thêm người dùng</a>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Dept</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody">
+        <!-- Hiển thị Dự liệu fetch từ userController.js -->
+      </tbody>
+    </table>
+    <script>
+      async function loadUserList() {
+        try {
+          const res = await fetch("/admin/user-list");
+          const data = await res.json();
+          if (data.success) {
+            const tbody = document.getElementById("userTableBody");
+            tbody.innerHTML = "";
+            data.data.forEach((user) => {
+              const row = `<tr>
+                      <td>${user.id}</td>
+                      <td>${user.username}</td>
+                      <td>${user.role}</td>
+                      <td>${user.department_name}</td>
+                      <td>
+                        <a href = "/admin/users/edit/${user.id}">Sửa</a>
+                        <a href = "#" onclick="deleteUser(${user.id})">Xóa</a>
+                      </td>
+                    </tr>`;
+              tbody.innerHTML += row;
+            });
+          } else {
+            alert(data.message || "Không tải được dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch:", err);
+        }
+      }
+
+      async function deleteUser(id) {
+        if (!confirm("Bạn chắc chắn muốn xóa user này?")) return;
+        try {
+          const res = await fetch(`/admin/users/delete/${id}`);
+          const data = await res.json();
+          alert(data.message);
+          loadUserList();
+        } catch (err) {
+          console.error("Lỗi xóa dữ liệu:", err);
+        }
+      }
+      window.onload = () => {
+        loadUserList();
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sửa process</title>
+  </head>
+  <body>
+    <h2>Sửa process</h2>
+    <a href="/management/processes">Quay lại</a>
+    <form id="editProcessForm">
+      <label for="name">Tên process</label><br />
+      <input type="text" name="name" id="name" /><br /><br />
+      <label for="procedure_id">Procedure</label><br />
+      <select name="procedure_id" id="procedure_id"></select
+      ><br /><br />
+      <label for="department_id">Department</label><br />
+      <select name="department_id" id="department_id"></select
+      ><br /><br />
+      <button type="submit">Cập nhật</button>
+    </form>
+    <script>
+      // Lấy Id process
+      const processId = window.location.pathname.split("/").pop();
+
+      // Lấy thông tin process
+      async function loadProcessInfo() {
+        try {
+          const res = await fetch(`/management/processes/detail/${processId}`);
+          const dataProcess = await res.json();
+
+          if (dataProcess.success) {
+            const process = dataProcess.data;
+            document.getElementById("name").value = process.name;
+
+            // Gọi hàm lấy thông tin Procedure
+            await loadProcedure(process.procedure_id);
+            // Gọi hàm lấy thông tin Department
+            await loadDepartment(process.department_id);
+          } else {
+            alert(dataProcess.message || "Không tìm thấy dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu:", err);
+        }
+      }
+
+      // Lấy thông tin Procedure
+      async function loadProcedure(selectedId) {
+        try {
+          const res = await fetch("/management/procedures/list");
+          const data = await res.json();
+          const select = document.getElementById("procedure_id");
+
+          data.data.forEach((prd) => {
+            const option = document.createElement("option");
+            option.value = prd.id;
+            option.text = prd.name;
+
+            if (prd.id == selectedId) {
+              option.selected = true;
+            }
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch Procedure:", err);
+        }
+      }
+
+      // Lấy thông tin Department
+      async function loadDepartment(selectedId) {
+        try {
+          const res = await fetch("/admin/department-list");
+          const data = await res.json();
+          const select = document.getElementById("department_id");
+
+          data.data.forEach((dep) => {
+            const option = document.createElement("option");
+            option.value = dep.id;
+            option.text = dep.name;
+
+            if (dep.id == selectedId) {
+              option.selected = true;
+            }
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch Procedure:", err);
+        }
+      }
+      window.onload = loadProcessInfo;
+
+      // Upload data
+      document
+        .getElementById("editProcessForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = {
+            name: document.getElementById("name").value,
+            procedure_id: document.getElementById("procedure_id").value,
+            department_id: document.getElementById("department_id").value,
+          };
+          try {
+            const res = await fetch(
+              `/management/processes/update/${processId}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+              }
+            );
+            const result = await res.json();
+            alert(result.message);
+            if (result.success) window.location.href = "/management/processes";
+          } catch (err) {
+            console.error("Lỗi cập nhật:", err);
+          }
+        });
+    </script>
+  </body>
+</html>

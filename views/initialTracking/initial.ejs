@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Khởi tạo Tracking</title>
+  </head>
+  <body>
+    <h2>Khởi tạo Tracking</h2>
+    <a href="/tracking">Tracking list</a>
+    <form id="initTrackingForm">
+      <label for="lot_code">Nhập lot_code</label>
+      <input type="text" id="lot_code" name="lot_code" />
+      <button type="submit">Khởi tạo</button>
+    </form>
+    <script>
+      const lotInput = document.getElementById("lot_code");
+      const message = document.getElementById("message"); // Nếu bạn có thẻ hiển thị thông báo
+
+      lotInput.addEventListener("change", async () => {
+        const lotCode = lotInput.value.trim();
+
+        // Kiểm tra lot_code có đúng 10 chữ số không
+        const isValid = /^\d{10}$/.test(lotCode);
+        if (!isValid) {
+          if (message) {
+            message.textContent =
+              "❌ Mã lot không hợp lệ. Phải đúng 10 chữ số.";
+            message.style.color = "red";
+          } else {
+            alert("❌ Mã lot không hợp lệ. Phải đúng 10 chữ số.");
+          }
+          return;
+        }
+
+        // Gửi request nếu hợp lệ
+        try {
+          const res = await fetch("/tracking/initial/post", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lot_code: lotCode }),
+          });
+
+          const result = await res.json();
+          if (message) {
+            message.textContent = result.message;
+            message.style.color = result.success ? "green" : "red";
+          } else {
+            alert(result.message);
+          }
+        } catch (err) {
+          console.error("Lỗi gửi dữ liệu:", err);
+          if (message) {
+            message.textContent = "❌ Gửi dữ liệu thất bại.";
+            message.style.color = "red";
+          } else {
+            alert("Gửi dữ liệu thất bại.");
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

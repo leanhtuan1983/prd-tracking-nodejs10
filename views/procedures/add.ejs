@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thêm Quy trình</title>
+  </head>
+  <body>
+    <h2>Thêm Quy trình</h2>
+    <a href="/management/procedures">Quay lại</a>
+    <form id="addProcedureForm">
+      <label for="name">Tên Quy trình</label><br />
+      <input type="text" name="name" id="name" required /><br /><br />
+      <label for="category_id">Category</label><br />
+      <select name="category_id" id="category_id">
+        <option>===Chọn category===</option></select
+      ><br /><br />
+      <button type="submit">Lưu</button>
+    </form>
+    <p id="message"></p>
+    <script>
+      // Lấy danh sách Categories
+      async function loadCategories() {
+        try {
+          const res = await fetch(`/management/category-list`);
+          const data = await res.json();
+          const select = document.getElementById("category_id");
+
+          data.data.forEach((cat) => {
+            const option = document.createElement("option");
+            option.value = cat.id;
+            option.text = cat.name;
+            select.appendChild(option);
+          });
+        } catch (err) {
+          console.error("Lỗi fetch Categories", err);
+        }
+      }
+
+      window.onload = loadCategories;
+
+      // Thêm mới Procedure
+
+      const form = document.getElementById("addProcedureForm");
+      const message = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("name").value;
+        const category_id = document.getElementById("category_id").value;
+
+        try {
+          const res = await fetch(`/management/procedures/create`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name, category_id }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            message.innerText = "Thêm mới Procedure thành công";
+            form.reset();
+          } else {
+            message.innerText = "Lỗi" + data.message;
+          }
+        } catch (err) {
+          console.error("Lỗi gửi dữ liệu:", err);
+          message.innerText = "Đã xảy ra lỗi";
+        }
+      });
+    </script>
+  </body>
+</html>

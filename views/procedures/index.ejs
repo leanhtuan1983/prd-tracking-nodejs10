@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh sách Quy trình</title>
+  </head>
+  <body>
+    <h2>Danh sách Quy trình</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/management/procedures/add">Thêm Quy trình</a>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Added by</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="procedureTableBody"></tbody>
+    </table>
+    <script>
+      async function loadProcedureList() {
+        try {
+          const res = await fetch("/management/procedures/list");
+          const data = await res.json();
+          if (data.success) {
+            const tbody = document.getElementById("procedureTableBody");
+            tbody.innerHTML = "";
+            data.data.forEach((prd, index) => {
+              const row = `<tr>
+            <td>${index + 1}</td>
+            <td>${prd.name}</td>
+            <td>${prd.category_name}</td>
+            <td>${prd.username}</td>
+            <td>
+              <a href = "/management/procedures/showDetail/${
+                prd.id
+              }">Show details</a>
+              <a href = "/management/procedures/edit/${prd.id}">Sửa</a>
+              <a href = "#" onclick = "deleteProcedure(${prd.id})">Xóa</a>
+            </td>
+            </tr>`;
+              tbody.innerHTML += row;
+            });
+          } else {
+            alert(data.message || "Không tải được dữ liệu");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch dữ liệu", err);
+        }
+      }
+
+      async function deleteProcedure(id) {
+        if (!confirm("Bạn chắc chắn muốn xóa Procedure này?")) return;
+        try {
+          const res = await fetch(`/management/procedures/delete/${id}`);
+          const data = await res.json();
+          alert(data.message);
+          loadProcedureList();
+        } catch (err) {
+          console.error("Lỗi xóa dữ liệu:", err);
+        }
+      }
+
+      window.onload = loadProcedureList;
+    </script>
+  </body>
+</html>

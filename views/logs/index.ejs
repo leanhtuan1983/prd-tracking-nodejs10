@@ -1,0 +1,80 @@
+<h2>Nhật ký thay đổi trạng thái</h2>
+<a href="/dashboard">Dashboard</a>
+<form id="filterForm" style="margin-top: 20px">
+  <label>Từ ngày:</label>
+  <input type="date" name="from" />
+  <label>Đến ngày:</label>
+  <input type="date" name="to" />
+  <label>Mã lô:</label>
+  <input type="text" name="lot_code" />
+  <label>Sản phẩm:</label>
+  <input type="text" name="product_name" />
+  <button type="submit">Lọc</button>
+  <button type="button" id="btnExport">Xuất Excel</button>
+</form>
+<br />
+<table border="1" cellpadding="8" cellspacing="0">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Mã lô</th>
+      <th>Sản phẩm</th>
+      <th>Quy trình</th>
+      <th>Trạng thái cũ</th>
+      <th>Trạng thái mới</th>
+      <th>Thời gian</th>
+      <th>Người cập nhật</th>
+      <th>Ghi chú</th>
+      <th>Rework</th>
+    </tr>
+  </thead>
+  <tbody id="logList"></tbody>
+</table>
+
+<script>
+  document.getElementById("filterForm").onsubmit = async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const query = new URLSearchParams(formData).toString();
+
+    const res = await fetch("/logs/list?" + query);
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.message || "Không tải được dữ liệu");
+      return;
+    }
+
+    const tbody = document.getElementById("logList");
+    tbody.innerHTML = "";
+    data.data.forEach((item, index) => {
+      const row = `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.lot_code}</td>
+          <td>${item.product_name}</td>
+          <td>${item.process_name}</td>
+          <td>${item.old_status}</td>
+          <td>${item.new_status}</td>
+          <td>${new Date(item.timestamp).toLocaleString("vi-VN")}</td>
+          <td>${item.username}</td>
+          <td>${item.note || ""}</td>
+          <td>${item.rework_cycle}</td>
+        </tr>
+      `;
+      tbody.innerHTML += row;
+    });
+  };
+
+  document.getElementById("btnExport").onclick = function () {
+    const query = new URLSearchParams(
+      new FormData(document.getElementById("filterForm"))
+    ).toString();
+    window.open("/logs/export/excel?" + query, "_blank");
+  };
+
+  // Tự động tải dữ liệu ban đầu
+  window.onload = () =>
+    document.getElementById("filterForm").dispatchEvent(new Event("submit"));
+</script>

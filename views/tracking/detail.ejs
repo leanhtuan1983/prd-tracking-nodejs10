@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chi tiết lot: <%= lot_code %> - Cycle <%= rework_cycle %></title>
+  </head>
+  <body>
+    <h2>Chi tiết tiến độ</h2>
+    <p><strong>Mã lô hàng:</strong> <%= lot_code %></p>
+    <p><strong>Rework cycle:</strong> <%= rework_cycle %></p>
+    <p><strong>Sản phẩm:</strong> <%= product_name %></p>
+    <a href="/tracking">← Quay lại</a>
+
+    <table border="1" cellpadding="8" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Process</th>
+          <th>Phòng ban</th>
+          <th>Trạng thái</th>
+          <th>Thời gian</th>
+          <th>Ghi chú</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="processList"></tbody>
+    </table>
+
+    <script>
+      const lotCode = <%- JSON.stringify(lot_code) %>;
+      const reworkCycle = <%= rework_cycle %>;
+
+      async function loadProcessList() {
+        try {
+          const res = await fetch(`/tracking/fetchDetail/${lotCode}/${reworkCycle}`);
+          const data = await res.json();
+          if (!data.success) return alert(data.message);
+
+          const tbody = document.getElementById("processList");
+          tbody.innerHTML = "";
+
+          let enableNext = true;
+
+          data.data.forEach((item) => {
+            const disabled = !enableNext || item.status === "completed";
+            if (item.status === "completed") enableNext = true;
+            else enableNext = false;
+
+            const time = item.timestamp ? new Date(item.timestamp).toLocaleString() : "";
+            const row = `<tr>
+              <td>${item.process_name}</td>
+              <td>${item.department_name}</td>
+              <td>${item.status}</td>
+              <td>${time}</td>
+              <td>${item.note || ""}</td>
+              <td>
+                <button onclick="updateStatus('${item.process_name}', ${item.department_id})" ${disabled ? "disabled" : ""}>Cập nhật</button>
+              </td>
+            </tr>`;
+            tbody.innerHTML += row;
+          });
+        } catch (err) {
+          console.error("Lỗi tải chi tiết:", err);
+        }
+      }
+
+      async function updateStatus(processName, departmentId ) {
+        if (!confirm(`Cập nhật tiến độ cho bước ${processName}?`)) return;
+
+        try {
+          const res = await fetch("/tracking/update-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lot_code: lotCode, process_name: processName, rework_cycle: reworkCycle, department_id: departmentId })
+          });
+          const result = await res.json();
+          alert(result.message);
+          if (result.success) loadProcessList();
+        } catch (err) {
+          console.error("Lỗi cập nhật:", err);
+        }
+      }
+
+      window.onload = loadProcessList;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Departments</title>
+  </head>
+  <body>
+    <h2>Danh sách phòng ban</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/admin/departments/add">+ Thêm phòng ban</a>
+    <table border="1" style="margin-top: 20px">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tên phòng ban</th>
+          <th>Chức năng/Nhiệm vụ</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="departmentTableBody"></tbody>
+    </table>
+
+    <script>
+      async function loadDepartments() {
+        try {
+          const res = await fetch("/admin/department-list");
+          const data = await res.json();
+          if (data.success) {
+            const tbody = document.getElementById("departmentTableBody");
+            tbody.innerHTML = "";
+            data.data.forEach((dept, index) => {
+              const row = `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${dept.name}</td>
+                <td>${dept.mission}</td>
+                <td>
+                  <a href = "/admin/departments/edit/${dept.id}">Sửa</a>
+                  <a href = "#" onclick="deleteDepartment(${dept.id})">Xóa</a>
+                </td>
+              </tr>`;
+              tbody.innerHTML += row;
+            });
+          } else {
+            alert(data.message || "Không thể tải danh sách");
+          }
+        } catch (err) {
+          console.error("Lỗi fetch:", err);
+        }
+      }
+
+      async function deleteDepartment(id) {
+        if (!confirm("Bạn có muốn xóa bộ phận này?")) return;
+        try {
+          const res = await fetch(`/admin/departments/delete/${id}`);
+          const data = await res.json();
+          alert(data.message);
+          loadDepartments();
+        } catch (err) {
+          console.error("Lỗi xóa:", err);
+        }
+      }
+      window.onload = loadDepartments;
+    </script>
+  </body>
+</html>
